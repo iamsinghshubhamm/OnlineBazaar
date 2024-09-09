@@ -84,7 +84,7 @@ exports.loginUser = async (req, res) => {
       email: user.email,
       id: user._id,
       role: user.role,
-      userName : user.userName
+      userName: user.userName,
     };
 
     // Sign the JWT token
@@ -95,8 +95,9 @@ exports.loginUser = async (req, res) => {
     // Set token in cookies
     const options = {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 2 * 60 * 60 * 1000,
+      sameSite: "none",
     };
 
     // Remove sensitive fields before sending the user object
@@ -125,21 +126,21 @@ exports.logout = (req, res) => {
 };
 
 exports.authMiddleware = async (req, res, next) => {
-    const token = req.cookies.token; 
-    if (!token) {
-        return res.status(400).json({
-            success: false,
-            message: "Unauthorized",
-        });
-    }
-    try {
-        const decode = await jwt.verify(token, process.env.JWT_Token);
-        req.user = decode;
-        next();
-    } catch (error) {
-        res.status(401).json({
-            success: false,
-            message: "Unauthorized user!",
-        });
-    }
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+  try {
+    const decode = await jwt.verify(token, process.env.JWT_Token);
+    req.user = decode;
+    next();
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized user!",
+    });
+  }
 };
